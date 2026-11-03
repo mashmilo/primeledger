@@ -1,0 +1,89 @@
+{
+ "name": "PrimeLedger",
+ "tagline": "Smart money, insurance & business guides",
+ "url": "https://primeledger.pages.dev",
+ "email": "akwbir@gmail.com",
+ "author": "PrimeLedger Editorial Team",
+ "lang": "en",
+ "theme": {
+  "primary": "#0b5fff",
+  "accent": "#00a86b",
+  "bg": "#ffffff",
+  "card": "#f5f7fb",
+  "text": "#1a2233",
+  "font": "Inter, system-ui, -apple-system, Segoe UI, Arial, sans-serif",
+  "radius": "10px",
+  "heroTitle": "Clear answers for smarter money decisions",
+  "heroSub": "Independent, research-based guides on insurance, investing, credit, taxes, business and technology."
+ },
+ "ads": {
+  "client": "",
+  "autoAds": false,
+  "header": "",
+  "inline": "",
+  "sidebar": "",
+  "footer": "",
+  "ga": "",
+  "verify": ""
+ },
+ "categories": [
+  {
+   "name": "Insurance",
+   "slug": "insurance",
+   "desc": "Auto, health, life and home insurance explained."
+  },
+  {
+   "name": "Credit Cards & Banking",
+   "slug": "credit-cards-banking",
+   "desc": "Cards, savings accounts and everyday banking."
+  },
+  {
+   "name": "Investing",
+   "slug": "investing",
+   "desc": "Stocks, ETFs, retirement and wealth building."
+  },
+  {
+   "name": "Loans & Mortgages",
+   "slug": "loans-mortgages",
+   "desc": "Compare borrowing options and lower your costs."
+  },
+  {
+   "name": "Taxes & Retirement",
+   "slug": "taxes-retirement",
+   "desc": "Tax planning, pensions and retirement accounts."
+  },
+  {
+   "name": "Business & Startups",
+   "slug": "business-startups",
+   "desc": "Start, fund and grow a small business."
+  },
+  {
+   "name": "Software & AI Tools",
+   "slug": "software-ai-tools",
+   "desc": "Reviews of AI and SaaS tools for work."
+  },
+  {
+   "name": "Web Hosting & Cloud",
+   "slug": "web-hosting-cloud",
+   "desc": "Hosting, cloud and domain buying guides."
+  },
+  {
+   "name": "Cybersecurity & VPN",
+   "slug": "cybersecurity-vpn",
+   "desc": "Protect your data, devices and identity."
+  },
+  {
+   "name": "Legal & Immigration",
+   "slug": "legal-immigration",
+   "desc": "Plain-English legal and visa basics."
+  }
+ ],
+ "pages": [
+  "about",
+  "contact",
+  "privacy",
+  "terms",
+  "editorial-policy",
+  "disclaimer"
+ ]
+}
