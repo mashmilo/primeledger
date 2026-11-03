@@ -1,31 +1,159 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Admin</title>
-<style>body{font:15px system-ui;margin:0;background:#f3f5f9;color:#1a2233}.w{max-width:960px;margin:auto;padding:16px}.c{background:#fff;border-radius:10px;padding:16px;margin:12px 0;box-shadow:0 1px 3px #0002}input,textarea,select{width:100%;padding:8px;margin:4px 0 10px;border:1px solid #ccd;border-radius:6px;font:inherit;box-sizing:border-box}textarea{min-height:360px;font-family:monospace;font-size:13px}button{padding:9px 16px;border:0;border-radius:6px;background:#0b5fff;color:#fff;cursor:pointer;margin:2px}button.g{background:#667}button.r{background:#d33}.t button{background:#dde}.t button.on{background:#0b5fff;color:#fff}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}label{font-weight:600;font-size:13px}#m{position:fixed;top:10px;right:10px;background:#111;color:#fff;padding:10px 16px;border-radius:8px;display:none}</style></head><body><div class="w">
-<h2>Admin Panel</h2><div id="m"></div>
-<div class="c"><b>GitHub connection</b> (stored only in this browser)<div class="row"><div><label>Repo (user/repo)</label><input id="repo"></div><div><label>Branch</label><input id="br" value="main"></div></div><label>Personal access token (fine-grained, Contents: read/write on this repo only)</label><input id="tok" type="password"><button onclick="saveC()">Save connection</button></div>
-<div class="t"><button id="b1" class="on" onclick="tab(1)">Posts &amp; Pages</button><button id="b2" onclick="tab(2)">Theme &amp; Ads</button><button id="b3" onclick="tab(3)">AI post prompt</button></div>
-<div id="t1" class="c"><button onclick="ls('posts')">List posts</button><button onclick="ls('pages')">List pages</button><button class="g" onclick="newPost()">+ New post</button><div id="list"></div>
-<label>Upload image (auto-resized, saved to your repo)</label><input type="file" id="im" accept="image/*" onchange="upImg()"><label>File path</label><input id="fp" placeholder="posts/my-slug.md"><label>Content (paste the full AI-written markdown with the --- header)</label><textarea id="ed"></textarea><button onclick="savePost()">Publish / Save</button><button class="r" onclick="del()">Delete file</button></div>
-<div id="t2" class="c" style="display:none"><button onclick="loadS()">Load settings</button><div id="sf"></div></div>
-<div id="t3" class="c" style="display:none"><p>Give this prompt to Claude, replacing the topic. Paste Claude's whole answer into the Content box and press Publish.</p><textarea id="pr" style="min-height:260px" readonly></textarea><button onclick="pr.select();document.execCommand('copy')">Copy prompt</button></div>
-</div><script>
-var $=function(i){return document.getElementById(i)},S,sha={};
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>PrimeLedger Admin</title>
+<style>
+:root{--p:#0b5fff;--bg:#f4f6fb;--c:#fff;--t:#16203a;--m:#667085;--b:#e3e7f0;--ok:#12a150;--warn:#d98a00;--bad:#d92d20}
+*{box-sizing:border-box}body{margin:0;font:15px/1.5 Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--t)}
+.w{max-width:980px;margin:auto;padding:0 14px}
+.top{background:#0f1a33;color:#fff;position:sticky;top:0;z-index:20}.bar{display:flex;align-items:center;gap:10px;padding:12px 0}.bar b{font-size:17px;flex:1}
+.pill{font-size:12px;padding:3px 10px;border-radius:99px;background:#ffffff22}.pill.ok{background:#12a15033;color:#7ff0ad}.pill.bad{background:#d92d2033;color:#ffb4ac}
+.card{background:var(--c);border:1px solid var(--b);border-radius:14px;padding:16px;margin:14px 0;box-shadow:0 1px 2px #1018280a}
+h3{margin:0 0 10px;font-size:16px}.sub{color:var(--m);font-size:13px;margin:0 0 12px}
+label{display:block;font-weight:600;font-size:13px;margin:10px 0 4px}
+input,textarea,select{width:100%;padding:11px 12px;border:1px solid #cfd5e3;border-radius:10px;font:inherit;font-size:16px;background:#fff;color:var(--t)}
+input:focus,textarea:focus,select:focus{outline:2px solid #0b5fff44;border-color:var(--p)}
+textarea{min-height:380px;font:13.5px/1.55 ui-monospace,Menlo,Consolas,monospace;resize:vertical}
+input[type=color]{padding:3px;height:44px}
+button{font:inherit;font-weight:600;padding:10px 16px;border:0;border-radius:10px;background:var(--p);color:#fff;cursor:pointer}
+button:disabled{opacity:.55;cursor:wait}button.sec{background:#eef1f8;color:var(--t)}button.ghost{background:#ffffff1f;color:#fff;padding:7px 12px}button.red{background:#fde8e6;color:var(--bad)}
+.tabs{display:flex;gap:6px;margin:14px 0 0;overflow-x:auto}.tabs button{background:#e8ecf6;color:var(--m);white-space:nowrap}.tabs button.on{background:var(--p);color:#fff}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.files{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;max-height:190px;overflow:auto}.files button{background:#eef1f8;color:var(--t);font-weight:500;font-size:13.5px;padding:7px 12px}.files button.on{background:#dbe6ff;color:var(--p)}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.ck{display:grid;grid-template-columns:1fr 1fr;gap:4px 14px;font-size:13px;margin:10px 0}@media(max-width:600px){.ck,.row{grid-template-columns:1fr}}
+.ck span.ok{color:var(--ok)}.ck span.warn{color:var(--warn)}.ck span.bad{color:var(--bad)}
+.path{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--m);background:#f6f8fc;border:1px dashed #cfd5e3;border-radius:10px;padding:8px 12px}.path code{color:var(--t);font-weight:600}
+.path a{color:var(--p)}#live{margin-top:12px;padding:10px 12px;border-radius:10px;font-size:14px;display:none}#live.wait{display:block;background:#fff6e0;color:#7a5200}#live.ok{display:block;background:#e6f7ee;color:#0a6b37}#live.bad{display:block;background:#fde8e6;color:#a1230f}#live a{color:inherit;font-weight:700}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}@media(max-width:600px){.grid{grid-template-columns:1fr}}.grid h3{grid-column:1/-1;margin-top:16px}
+#m{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#111a30;color:#fff;padding:11px 18px;border-radius:12px;display:none;z-index:50;max-width:92vw;box-shadow:0 8px 24px #0004}
+.mt{color:var(--m);font-size:12.5px}
+</style></head><body>
+<div class="top"><div class="w bar"><b>PrimeLedger Admin</b><span id="st" class="pill">Not connected</span><button class="ghost" onclick="$('cn').hidden=!$('cn').hidden">Connection</button></div></div>
+<div class="w"><div id="m"></div>
+
+<div id="cn" class="card"><h3>GitHub connection</h3><p class="sub">Stored only in this browser. Token needs Contents: read &amp; write on this repo only.</p>
+<div class="row"><div><label>Repository (user/repo)</label><input id="repo" placeholder="username/primeledger" autocapitalize="off"></div><div><label>Branch (must match Cloudflare's production branch)</label><input id="br" value="main" autocapitalize="off"></div></div>
+<label>Personal access token</label><input id="tok" type="password" autocomplete="off">
+<div class="acts"><button onclick="connect()">Save &amp; connect</button></div></div>
+
+<div class="tabs"><button id="b1" class="on" onclick="tab(1)">Posts &amp; Pages</button><button id="b2" onclick="tab(2)">Theme &amp; Ads</button><button id="b3" onclick="tab(3)">AI post prompt</button></div>
+
+<div id="t1">
+<div class="card"><h3>Content</h3><div class="seg"><button class="sec" onclick="ls('posts')">Posts</button><button class="sec" onclick="ls('pages')">Pages</button><button onclick="newPost()">+ New post</button></div>
+<input id="flt" placeholder="Filter files…" oninput="renderList()" style="margin-top:10px;display:none"><div id="list" class="files"></div></div>
+
+<div class="card"><h3 id="eh">Editor</h3>
+<div class="path">Saves to: <code id="pv">posts/…md</code><span id="vl"></span><label style="margin:0 0 0 auto;font-weight:500"><input type="checkbox" id="mn" style="width:auto;margin-right:6px" onchange="$('fpw').hidden=!this.checked;check()">Set path manually</label></div>
+<div id="fpw" hidden><input id="fp" placeholder="posts/my-slug.md" oninput="check()" style="margin-top:8px"></div>
+<label>Content — paste the full AI-written markdown, header included</label>
+<textarea id="ed" oninput="check()" spellcheck="false"></textarea>
+<div class="ck" id="ckl"></div><div class="mt" id="wc"></div>
+<div class="acts"><button id="pub" onclick="save()">Publish / Save</button><label class="sec" style="margin:0;display:inline-block;padding:10px 16px;border-radius:10px;background:#eef1f8;cursor:pointer;font-weight:600">Upload image<input type="file" id="im" accept="image/*" onchange="upImg()" hidden></label><button class="red" onclick="del()">Delete file</button></div>
+<div id="live"></div></div>
+</div>
+
+<div id="t2" class="card" hidden><h3>Theme, site &amp; ads</h3><div id="sf"><p class="sub">Loading…</p></div></div>
+
+<div id="t3" class="card" hidden><h3>AI post prompt</h3><p class="sub">Fill in the topic, copy the prompt into Claude, then paste Claude's whole answer into the editor. Code fences and stray spaces are cleaned automatically.</p>
+<label>Topic</label><input id="tp" placeholder="e.g. How index funds work for beginners" oninput="mkPrompt()">
+<label>Category</label><select id="ct" onchange="mkPrompt()"></select>
+<label>Prompt</label><textarea id="pr" style="min-height:300px" readonly></textarea>
+<div class="acts"><button onclick="cp()">Copy prompt</button></div></div>
+</div>
+
+<script>
+var $=function(i){return document.getElementById(i)};
+var CATS=['insurance','credit-cards-banking','investing','loans-mortgages','taxes-retirement','business-startups','software-ai-tools','web-hosting-cloud','cybersecurity-vpn','legal-immigration'];
+var S=null,sha={},cur={path:'',sha:null,isNew:true,slug:''},LST={dir:'',files:[]},poll=null,sLoaded=false;
+var today=function(){return new Date().toISOString().slice(0,10)};
 repo.value=localStorage.repo||'';br.value=localStorage.br||'main';tok.value=localStorage.tok||'';
-function saveC(){localStorage.repo=repo.value;localStorage.br=br.value;localStorage.tok=tok.value;msg('Saved')}
-function msg(t){m.textContent=t;m.style.display='block';setTimeout(function(){m.style.display='none'},2500)}
-function tab(n){[1,2,3].forEach(function(i){$('t'+i).style.display=i==n?'block':'none';$('b'+i).className=i==n?'on':''})}
-function api(p,o){o=o||{};o.headers={Authorization:'Bearer '+tok.value,Accept:'application/vnd.github+json'};return fetch('https://api.github.com/repos/'+repo.value+'/contents/'+p+(o.method?'':'?ref='+br.value),o).then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error(j.message);return j})})}
+var msgT;function msg(t){var m=$('m');m.textContent=t;m.style.display='block';clearTimeout(msgT);msgT=setTimeout(function(){m.style.display='none'},3200)}
+function tab(n){[1,2,3].forEach(function(i){$('t'+i).hidden=i!=n;$('b'+i).className=i==n?'on':''});if(n==2&&!sLoaded)loadS()}
+function api(p,o){o=o||{};o.cache='no-store';o.headers={Authorization:'Bearer '+tok.value.trim(),Accept:'application/vnd.github+json'};
+ return fetch('https://api.github.com/repos/'+repo.value.trim()+'/contents/'+p+(o.method?'':'?ref='+encodeURIComponent(br.value.trim())),o).then(function(r){return r.json().then(function(j){if(!r.ok){var e=new Error(j.message||'Request failed');e.status=r.status;throw e}return j})})}
 var b64=function(s){return btoa(unescape(encodeURIComponent(s)))},ub=function(s){return decodeURIComponent(escape(atob(s.replace(/\n/g,''))))};
-function ls(d){api(d).then(function(a){list.innerHTML=a.filter(function(f){return /\.md$/.test(f.name)}).map(function(f){return '<button class="g" onclick="openF(\''+f.path+'\')">'+f.name+'</button>'}).join('')}).catch(function(e){msg(e.message)})}
-function openF(p){api(p).then(function(f){fp.value=p;ed.value=ub(f.content);sha[p]=f.sha})}
-function newPost(){fp.value='posts/';ed.value='---\ntitle: \ndescription: \ncategory: insurance\ndate: '+new Date().toISOString().slice(0,10)+'\nslug: \nimage: \nkeywords: \n---\n'}
-function savePost(){var p=fp.value,x=ed.value,mm=x.match(/^slug:\s*(.+)$/m);if(p==='posts/'&&mm)p=fp.value='posts/'+mm[1].trim()+'.md';if(!/\.md$/.test(p))return msg('Set a file path');
- api(p).then(function(f){return f.sha},function(){return null}).then(function(s){var b={message:'Update '+p,content:b64(x),branch:br.value};if(s)b.sha=s;return api(p,{method:'PUT',body:JSON.stringify(b)})}).then(function(){msg('Saved. Site rebuilds in ~1 min')}).catch(function(e){msg(e.message)})}
-function del(){if(!confirm('Delete '+fp.value+'?'))return;api(fp.value).then(function(f){return api(fp.value,{method:'DELETE',body:JSON.stringify({message:'Delete',sha:f.sha,branch:br.value})})}).then(function(){msg('Deleted');ed.value=''}).catch(function(e){msg(e.message)})}
+function setSt(t,c){st.textContent=t;st.className='pill '+(c||'')}
+function connect(){localStorage.repo=repo.value.trim();localStorage.br=br.value.trim();localStorage.tok=tok.value.trim();setSt('Connecting…');
+ return api('settings.json').then(function(){setSt('Connected · '+br.value.trim(),'ok');$('cn').hidden=true;msg('Connected');ls('posts')}).catch(function(e){setSt('Not connected','bad');$('cn').hidden=false;msg('Connection failed: '+e.message)})}
+
+/* ---------- markdown header helpers (same rules as build.js) ---------- */
+function norm(t){return t.replace(/^\uFEFF/,'').replace(/\r/g,'').trim().replace(/^```[a-z]*\n/i,'').replace(/\n```$/,'').trim()+'\n'}
+var HDR=/^---[ \t]*\n([\s\S]*?)\n---[ \t]*(?:\n|$)([\s\S]*)$/;
+function meta(t){var m=norm(t).match(HDR);if(!m)return null;var d={};m[1].split('\n').forEach(function(l){var i=l.indexOf(':');if(i>0)d[l.slice(0,i).trim()]=l.slice(i+1).trim()});return d}
+var slugify=function(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')};
+function prep(t){var n=norm(t),m=n.match(HDR);if(!m)return null;var d=meta(n),s=slugify(d.slug||d.title);if(!s)return null;
+ var h=/^slug:/m.test(m[1])?m[1].replace(/^slug:.*$/m,'slug: '+s):m[1]+'\nslug: '+s;d.slug=s;
+ return{text:'---\n'+h+'\n---\n'+m[2].replace(/^\n+/,'\n'),d:d,slug:s}}
+function isPage(){return !cur.isNew&&/^pages\//.test(cur.path)}
+function pathFor(){if(mn.checked&&fp.value.trim())return fp.value.trim();if(isPage())return cur.path;
+ var d=meta(ed.value),s=d?slugify(d.slug||d.title):'';if(!s)return '';
+ if(!cur.isNew&&/^posts\//.test(cur.path)&&s===cur.slug)return cur.path;return 'posts/'+s+'.md'}
+
+function check(){var p=isPage(),d=meta(ed.value),L=[];var add=function(ok,t,w){L.push('<span class="'+(ok?'ok':w?'warn':'bad')+'">'+(ok?'✓ ':w?'! ':'✗ ')+t+'</span>')};
+ add(!!d,'Header (--- block) found');
+ if(d){add(!!d.title,'Title'+(d.title?' ('+d.title.length+' chars)':' missing'),d.title&&d.title.length>60);
+  add(!!d.description&&d.description.length>=100&&d.description.length<=165,'Description'+(d.description?' ('+d.description.length+' chars)':' missing'),!!d.description);
+  if(!p)add(CATS.indexOf(d.category)>-1,'Category'+(d.category?': '+d.category:' missing'));
+  add(/^\d{4}-\d\d-\d\d$/.test(d.date||''),'Date '+(d.date||'missing'),true);
+  add(!!(d.slug||d.title),'Slug '+(slugify(d.slug||d.title)||'missing'),!!d.title&&!d.slug)}
+ ckl.innerHTML=L.join('');var pa=pathFor();pv.textContent=pa||'(add a title to see the path)';
+ vl.innerHTML=(pa&&!isPage()&&d&&slugify(d.slug||d.title))?' → <a href="/'+((d&&slugify(d.slug||d.title))||'')+'/" target="_blank" rel="noopener">view live URL</a>':'';
+ var w=ed.value.split(/\s+/).filter(Boolean).length;wc.textContent=w+' words'}
+
+function newPost(){cur={path:'',sha:null,isNew:true,slug:''};mn.checked=false;fpw.hidden=true;fp.value='';eh.textContent='New post';
+ ed.value='---\ntitle: \ndescription: \ncategory: insurance\ndate: '+today()+'\nslug: \nimage: \nkeywords: \n---\n\n';live.className='';check();ed.focus()}
+
+function ls(d){LST.dir=d;return api(d).then(function(a){LST.files=a.filter(function(f){return /\.md$/.test(f.name)});flt.style.display='block';renderList()}).catch(function(e){msg(e.message)})}
+function renderList(){var q=flt.value.toLowerCase();var f=LST.files.filter(function(x){return x.name.toLowerCase().indexOf(q)>-1});
+ list.innerHTML=f.length?f.map(function(x){return '<button data-p="'+x.path+'" class="'+(x.path==cur.path?'on':'')+'">'+x.name+'</button>'}).join(''):'<span class="mt">No files found.</span>'}
+list.onclick=function(e){var p=e.target.getAttribute&&e.target.getAttribute('data-p');if(p)openF(p)};
+function openF(p){api(p).then(function(f){var t=ub(f.content),d=meta(t)||{};cur={path:p,sha:f.sha,isNew:false,slug:slugify(d.slug||d.title)};ed.value=t;mn.checked=false;fpw.hidden=true;eh.textContent='Editing '+p;live.className='';check();renderList();ed.scrollIntoView({behavior:'smooth'})}).catch(function(e){msg(e.message)})}
+
+async function save(){
+ if(!repo.value||!tok.value)return msg('Connect GitHub first');
+ var text,path,slug='',page=isPage();
+ if(page){text=norm(ed.value);path=cur.path}
+ else{var r=prep(ed.value);if(!r)return msg('Header problem – check the list under the editor');
+  if(CATS.indexOf(r.d.category)<0)return msg('Category must be one of the listed categories');
+  text=r.text;slug=r.slug;path=(mn.checked&&fp.value.trim())?fp.value.trim():((!cur.isNew&&/^posts\//.test(cur.path)&&r.slug===cur.slug)?cur.path:'posts/'+r.slug+'.md')}
+ if(!/\.md$/.test(path))return msg('Path must end in .md');
+ pub.disabled=true;pub.textContent='Saving…';
+ try{var s=null;try{s=(await api(path)).sha}catch(e){if(e.status!=404)throw e}
+  if(s&&path!==cur.path&&!confirm('A file already exists at '+path+'. Overwrite it?')){return}
+  var b={message:(s?'Update ':'Add ')+path,content:b64(text),branch:br.value.trim()};if(s)b.sha=s;
+  var res=await api(path,{method:'PUT',body:JSON.stringify(b)});
+  ed.value=text;cur={path:path,sha:res.content.sha,isNew:false,slug:slug||cur.slug};eh.textContent='Editing '+path;check();
+  msg('Saved to GitHub ✓');
+  if(/^posts\//.test(path)&&slug){if(s)showLive('ok','Updated. Cloudflare is rebuilding (1–2 min). <a href="/'+slug+'/" target="_blank" rel="noopener">Open post</a>');else watch(slug)}
+  else showLive('ok','Saved. Cloudflare is rebuilding (1–2 min).')
+ }catch(e){msg('Error: '+e.message)}finally{pub.disabled=false;pub.textContent='Publish / Save'}}
+
+function showLive(c,h){live.className=c;live.innerHTML=h}
+function watch(slug){clearInterval(poll);var n=0,u='/'+slug+'/';showLive('wait','Saved to GitHub. Waiting for Cloudflare to publish… <span class="mt">(checks every 8s)</span>');
+ poll=setInterval(function(){n++;fetch(u+'?t='+Date.now(),{cache:'no-store'}).then(function(r){if(r.ok){clearInterval(poll);showLive('ok','Live ✓ <a href="'+u+'" target="_blank" rel="noopener">Open post</a>')}else if(n>=24)fail()}).catch(function(){if(n>=24)fail()});
+  if(n>=24)clearInterval(poll)},8000);
+ function fail(){clearInterval(poll);showLive('bad','Not live after ~3 minutes. The file is saved in GitHub, so check <b>Cloudflare Pages → Deployments</b> for a failed build, and that Cloudflare builds the branch “'+br.value.trim()+'”.')}}
+
+function del(){if(!cur.path||cur.isNew)return msg('Open a file first');if(!confirm('Delete '+cur.path+'?'))return;
+ api(cur.path).then(function(f){return api(cur.path,{method:'DELETE',body:JSON.stringify({message:'Delete '+cur.path,sha:f.sha,branch:br.value.trim()})})}).then(function(){msg('Deleted');var d=LST.dir;newPost();ls(d)}).catch(function(e){msg(e.message)})}
+
+function upImg(){var f=im.files[0];if(!f)return;if(!tok.value)return msg('Connect GitHub first');var r=new FileReader();r.onload=function(){var i=new Image();i.onload=function(){var s=Math.min(1,1200/i.width),c=document.createElement('canvas');c.width=i.width*s;c.height=i.height*s;var x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(i,0,0,c.width,c.height);
+ var n=f.name.replace(/\.[^.]+$/,'').toLowerCase().replace(/[^a-z0-9]+/g,'-')+'-'+Date.now().toString(36)+'.jpg';
+ api('assets/img/'+n,{method:'PUT',body:JSON.stringify({message:'Add image',content:c.toDataURL('image/jpeg',.82).split(',')[1],branch:br.value.trim()})}).then(function(){ed.value=ed.value.replace(/\s*$/,'')+'\n\n![Describe image](/assets/img/'+n+')\n';check();msg('Uploaded. For a cover use  image: /assets/img/'+n)}).catch(function(e){msg(e.message)})};i.src=r.result};r.readAsDataURL(f);im.value=''}
+
+/* ---------- settings ---------- */
 var F=[['theme.primary','Primary color','color'],['theme.accent','Accent color','color'],['theme.bg','Background','color'],['theme.card','Card color','color'],['theme.text','Text color','color'],['theme.font','Font stack'],['theme.radius','Corner radius'],['theme.heroTitle','Home title'],['theme.heroSub','Home subtitle'],['name','Site name'],['tagline','Tagline'],['url','Site URL (https://...)'],['email','Contact email'],['author','Author name'],['ads.client','AdSense publisher ID (ca-pub-XXXXXXXX)'],['ads.header','Ad slot: header'],['ads.inline','Ad slot: in-article'],['ads.sidebar','Ad slot: sidebar'],['ads.footer','Ad slot: footer'],['ads.ga','Google Analytics ID (G-XXXX)'],['ads.verify','Search Console verification code']];
-function g(o,k){return k.split('.').reduce(function(a,b){return a[b]},o)}function st(o,k,v){var a=k.split('.'),l=a.pop();a.reduce(function(x,y){return x[y]},o)[l]=v}
-function loadS(){api('settings.json').then(function(f){sha.s=f.sha;S=JSON.parse(ub(f.content));sf.innerHTML=F.map(function(f,i){return '<label>'+f[1]+'</label><input id="f'+i+'" type="'+(f[2]||'text')+'" value="'+String(g(S,f[0])).replace(/"/g,'&quot;')+'">'}).join('')+'<label>Menu categories &amp; pages (JSON)</label><textarea id="cj" style="min-height:200px">'+JSON.stringify({categories:S.categories,pages:S.pages},null,1)+'</textarea><button onclick="saveS()">Save settings</button>'}).catch(function(e){msg(e.message)})}
-function saveS(){F.forEach(function(f,i){st(S,f[0],$('f'+i).value)});try{var j=JSON.parse(cj.value);S.categories=j.categories;S.pages=j.pages}catch(e){return msg('Invalid JSON')}
- api('settings.json',{method:'PUT',body:JSON.stringify({message:'Update settings',content:b64(JSON.stringify(S,null,1)),sha:sha.s,branch:br.value})}).then(function(r){sha.s=r.content.sha;msg('Saved. Site rebuilds in ~1 min')}).catch(function(e){msg(e.message)})}
-function upImg(){var f=im.files[0];if(!f)return;var r=new FileReader();r.onload=function(){var i=new Image();i.onload=function(){var s=Math.min(1,1200/i.width),c=document.createElement('canvas');c.width=i.width*s;c.height=i.height*s;var x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(i,0,0,c.width,c.height);var n=f.name.replace(/\.[^.]+$/,'').toLowerCase().replace(/[^a-z0-9]+/g,'-')+'-'+Date.now().toString(36)+'.jpg';api('assets/img/'+n,{method:'PUT',body:JSON.stringify({message:'Add image',content:c.toDataURL('image/jpeg',.82).split(',')[1],branch:br.value})}).then(function(){ed.value+='\n![Describe image](/assets/img/'+n+')\n';msg('Uploaded. For the cover use image: /assets/img/'+n)}).catch(function(e){msg(e.message)})};i.src=r.result};r.readAsDataURL(f)}
-pr.value='Write an original, genuinely helpful, expert-level article of 1,500-2,000 words on: [TOPIC] for readers in the US, UK, Canada and Australia.\nOutput ONLY a markdown file, no commentary, starting exactly with:\n---\ntitle: (under 60 chars, main keyword first)\ndescription: (140-155 chars, includes keyword, compelling)\ncategory: (one of: insurance, credit-cards-banking, investing, loans-mortgages, taxes-retirement, business-startups, software-ai-tools, web-hosting-cloud, cybersecurity-vpn, legal-immigration)\ndate: YYYY-MM-DD\nslug: short-keyword-slug\nimage: (blank or image URL)\nkeywords: 5 comma-separated keywords\n---\nThen the body: NO H1; intro that uses the keyword in the first 100 words; ## H2 sections with ### H3 where useful; at least one bullet list and one markdown table; practical steps and examples; do not invent statistics or cite fake sources; internal links like [text](/category/insurance/); a final ## FAQ with 4 questions as ### headings with short answers; a ## Conclusion. Plain-English, accurate, no filler, no promises of returns.';
+var GR={0:'Theme',9:'Site',14:'Ads & analytics'};
+function g(o,k){return k.split('.').reduce(function(a,b){return a&&a[b]},o)}function st2(o,k,v){var a=k.split('.'),l=a.pop();a.reduce(function(x,y){return x[y]},o)[l]=v}
+function loadS(){api('settings.json').then(function(f){sha.s=f.sha;S=JSON.parse(ub(f.content));sLoaded=true;
+ sf.innerHTML='<div class="grid">'+F.map(function(f,i){var v=g(S,f[0]);v=v==null?'':v;return(GR[i]?'<h3>'+GR[i]+'</h3>':'')+'<div><label>'+f[1]+'</label><input id="f'+i+'" type="'+(f[2]||'text')+'" value="'+String(v).replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'"></div>'}).join('')+'</div><label>Menu categories &amp; pages (JSON)</label><textarea id="cj" style="min-height:220px">'+JSON.stringify({categories:S.categories,pages:S.pages},null,1).replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</textarea><div class="acts"><button onclick="saveS()">Save settings</button></div>'}).catch(function(e){sf.innerHTML='<p class="sub">Connect GitHub first. '+e.message+'</p>'})}
+function saveS(){F.forEach(function(f,i){st2(S,f[0],$('f'+i).value)});try{var j=JSON.parse($('cj').value);S.categories=j.categories;S.pages=j.pages}catch(e){return msg('Invalid JSON')}
+ api('settings.json',{method:'PUT',body:JSON.stringify({message:'Update settings',content:b64(JSON.stringify(S,null,1)),sha:sha.s,branch:br.value.trim()})}).then(function(r){sha.s=r.content.sha;msg('Saved. Site rebuilds in ~1 min')}).catch(function(e){msg(e.message)})}
+
+/* ---------- AI prompt ---------- */
+ct.innerHTML='<option value="">Let the AI choose</option>'+CATS.map(function(c){return '<option>'+c+'</option>'}).join('');
+function mkPrompt(){var t=tp.value.trim()||'[TOPIC]',c=ct.value||'(one of: '+CATS.join(', ')+')';
+ pr.value='Write an original, genuinely helpful, expert-level article of 1,500-2,000 words on: '+t+'\nAudience: readers in the US, UK, Canada and Australia.\n\n'
+ +'OUTPUT RULES: Output ONLY the raw file contents. No commentary before or after, and do NOT wrap it in a code block. The very first characters must be --- and the file must look exactly like this:\n---\ntitle: (under 60 chars, main keyword first, no quotation marks)\ndescription: (140-155 chars, includes the keyword, compelling, no quotation marks)\ncategory: '+c+'\ndate: '+today()+'\nslug: (short-keyword-slug, lowercase letters, numbers and hyphens only)\nimage:\nkeywords: (5 comma-separated keywords)\n---\n\n'
+ +'BODY RULES:\n- No H1 title. Use the main keyword in the first 100 words.\n- Use ## for sections and ### for sub-sections where useful.\n- Include at least one bullet list and one markdown table.\n- Allowed formatting only: paragraphs, ## / ### headings, simple - bullets or 1. numbered lists (no nested lists), **bold**, [links](url) and simple tables. No horizontal rules, no code blocks, no HTML, no emojis, no images.\n- Practical steps and examples. Do not invent statistics, quotes or sources. Say where rules differ by country and point readers to official sources. This is general information, not personal advice.\n- Add 2-3 internal links such as [car insurance guides](/category/insurance/).\n- Finish with a ## FAQ section of 4 questions written as ### headings with short answers, then a ## Conclusion.\n- Plain English, accurate, no filler, no promises of returns.'}
+function cp(){pr.select();var ok=false;try{ok=document.execCommand('copy')}catch(e){}if(navigator.clipboard)navigator.clipboard.writeText(pr.value).then(function(){msg('Prompt copied')},function(){msg(ok?'Prompt copied':'Select and copy manually')});else msg(ok?'Prompt copied':'Select and copy manually')}
+mkPrompt();newPost();if(tok.value&&repo.value)connect();else $('cn').hidden=false;
 </script></body></html>
