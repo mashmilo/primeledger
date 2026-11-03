@@ -52,7 +52,7 @@ Being honest about risk is part of investing well.
 - **Tracking difference:** The fund may not match its index exactly because of fees and how it is managed.
 - **Behaviour risk:** Selling in a panic after a fall can lock in losses. Many investors damage their own results by reacting to short-term news.
 
-Money you may need within a few years generally does not belong in stock-based funds. Savings accounts or other low-risk options may suit short-term goals better. See our [credit cards and banking guides](/category/credit-cards-banking/) for that side of the picture.
+Money you may need within a few years generally does not belong in stock-based funds. Savings accounts or other low-risk options may suit short-term goals better. See our guide to [high-yield savings accounts](/high-yield-savings-accounts/) for that side of the picture.
 
 ## Understanding the costs
 
@@ -121,7 +121,7 @@ The account you use can matter as much as the fund. The following is a summary o
 | Canada | TFSA, RRSP, non-registered account | TFSA growth is generally tax-free; RRSP contributions may be tax-deductible, with tax on withdrawal |
 | Australia | Superannuation, standard investment account | Super has concessional tax treatment with access rules; investments outside super are taxed under normal rules |
 
-If you can invest through a tax-advantaged account, it is worth understanding it before choosing where to place your fund. Also check whether your employer offers a retirement plan or contributions, as that can influence your decision. For related guidance, see our [taxes and retirement guides](/category/taxes-retirement/).
+If you can invest through a tax-advantaged account, it is worth understanding it before choosing where to place your fund. Also check whether your employer offers a retirement plan or contributions, as that can influence your decision. For related guidance, see our [retirement accounts guide](/retirement-accounts-guide/).
 
 ## Step-by-step: how to buy your first index fund
 
@@ -165,4 +165,4 @@ Studies comparing the two often find that many active funds fail to beat their b
 
 Index funds offer a straightforward way to invest: broad diversification, low costs and little need for stock-picking skill. They still carry real market risk, so they suit money you can leave invested for the long term, and not money you may need soon.
 
-Start by clarifying your goal and timeline, choose a suitable tax-advantaged account where one is available, compare funds on index, cost and structure, and invest consistently without reacting to every headline. If your situation is complex, a regulated financial adviser in your country can help tailor the approach. For more guides, explore our [investing category](/category/investing/).
+Start by clarifying your goal and timeline, choose a suitable tax-advantaged account where one is available, compare funds on index, cost and structure, and invest consistently without reacting to every headline. If your situation is complex, a regulated financial adviser in your country can help tailor the approach. To see how retirement saving fits in, read our [retirement accounts guide](/retirement-accounts-guide/).
